@@ -188,6 +188,15 @@ function addToStorage() {
 //
 // ==========================================================
 // **********************************************************
+// ==========================================================
+// goToSiteLocation
+// ==========================================================
+function goToSiteLocation(pageName) {
+  var currentUrl = window.location.href;
+  let indexOf = currentUrl.lastIndexOf("/") + 1;
+
+  document.location = currentUrl.substring(0, indexOf) + pageName;
+}
 
 // ==========================================================
 // onOrderClick

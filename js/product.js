@@ -202,7 +202,7 @@ function onOrderClick(event) {
   if (isOrderProductValid()) {
     // Write to local storage.
     addToStorage();
-    window.location.replace("../html/index.html");
+    window.location.replace("../index.html");
     return;
   }
 

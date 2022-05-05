@@ -1,26 +1,28 @@
 // ==========================================================
-const apiUrlBase        = "http://localhost:3000/api/products/";
-let orderArray          = [];
-let totalPrice          = 0;
-let userContact         = {firstName: "", lastName:"", address:"", city:"", email:""};
- 
+const apiUrlBase = "https://cryptic-refuge-55458.herokuapp.com/api/products/";
+let orderArray = [];
+let totalPrice = 0;
+let userContact = {
+  firstName: "",
+  lastName: "",
+  address: "",
+  city: "",
+  email: "",
+};
 
 // ==========================================================
 // dumpStorage
 // ==========================================================
-function dumpStorage()
-{
+function dumpStorage() {
   console.log("******* Storage Dump Start *******");
   console.log("Storage count: " + localStorage.length);
 
-  for (var i = 0; i < localStorage.length; i++)
-  {
+  for (var i = 0; i < localStorage.length; i++) {
     console.log("Order index " + i + " : " + localStorage[i]);
 
     var retrievedObject = JSON.parse(localStorage[i]);
 
-    if (!retrievedObject)
-    {
+    if (!retrievedObject) {
       console.log("  Failed to retrive object: " + i);
     }
   }
@@ -32,69 +34,61 @@ function dumpStorage()
 // ==========================================================
 // removeOrderFromStorage
 // ==========================================================
-function removeOrderFromStorage(article)
-{
-  let _id             = article.getAttribute('data-id');
-  let color           = article.getAttribute('data-color');
-  let foundItem       = false;
-  let itemIndex       = 0;
-  const storageCount  = localStorage.length; // As length will change during loop we store it to continue parsing.
+function removeOrderFromStorage(article) {
+  let _id = article.getAttribute("data-id");
+  let color = article.getAttribute("data-color");
+  let foundItem = false;
+  let itemIndex = 0;
+  const storageCount = localStorage.length; // As length will change during loop we store it to continue parsing.
 
-  if (storageCount <= 0)
-  {
-    throw "Une erreur est survenue lors de l'edition de votre panier."
+  if (storageCount <= 0) {
+    throw "Une erreur est survenue lors de l'edition de votre panier.";
   }
 
-
-  for (var i = 0; i < storageCount; i++)
-  {
+  for (var i = 0; i < storageCount; i++) {
     var retrievedObject = JSON.parse(localStorage[i]);
 
-    if (retrievedObject && retrievedObject._id === _id && retrievedObject.color === color)
-    {
+    if (
+      retrievedObject &&
+      retrievedObject._id === _id &&
+      retrievedObject.color === color
+    ) {
       foundItem = true;
       localStorage.removeItem(itemIndex);
       continue;
     }
 
-    if (foundItem)
-    {
+    if (foundItem) {
       localStorage.setItem(itemIndex, JSON.stringify(retrievedObject));
       itemIndex++;
       localStorage.removeItem(itemIndex);
       continue;
     }
-    
+
     itemIndex++;
   }
 
-  if (storageCount === localStorage.length)
-  {
-    throw "Une erreur est survenue lors de l'edition de votre panier."
+  if (storageCount === localStorage.length) {
+    throw "Une erreur est survenue lors de l'edition de votre panier.";
   }
 }
 
 // ==========================================================
 // updateOrderQuantitytoStorage
 // ==========================================================
-function updateOrderQuantitytoStorage(article, quantity)
-{
-  let _id   = article.getAttribute('data-id');
-  let color = article.getAttribute('data-color');
+function updateOrderQuantitytoStorage(article, quantity) {
+  let _id = article.getAttribute("data-id");
+  let color = article.getAttribute("data-color");
 
-  for (var i = 0; i <= localStorage.length - 1; i++)
-  {
+  for (var i = 0; i <= localStorage.length - 1; i++) {
     let retrievedObject = JSON.parse(localStorage[i]);
 
-    if (!retrievedObject)
-    {
-      throw "Une erreur est survenue lors de l'edition de votre panier."
+    if (!retrievedObject) {
+      throw "Une erreur est survenue lors de l'edition de votre panier.";
     }
 
-    if (retrievedObject._id === _id && retrievedObject.color === color)
-    {
-      if (quantity >= 1)
-      {
+    if (retrievedObject._id === _id && retrievedObject.color === color) {
+      if (quantity >= 1) {
         retrievedObject.count = quantity;
         localStorage.setItem(i, JSON.stringify(retrievedObject));
         break;
@@ -106,77 +100,75 @@ function updateOrderQuantitytoStorage(article, quantity)
 // ==========================================================
 // apiAskForProduct
 // ==========================================================
-// Args: 
+// Args:
 //    - String (URL)
-//    - Object (Order) 
+//    - Object (Order)
 //
 // return Promise.
 // ==========================================================
-function apiAskForProduct(url, order) 
-{
+function apiAskForProduct(url, order) {
   fetch(url)
-    .then(function(res) 
-    {
-      if (res.ok) 
-      {
+    .then(function (res) {
+      if (res.ok) {
         return res.json();
       }
     })
-    .then(function(data) 
-    {
-      let productObj = {colors: [], _id: "", name: "", price: 0, imageUrl: "", description : "", altTxt: ""};
-      
+    .then(function (data) {
+      let productObj = {
+        colors: [],
+        _id: "",
+        name: "",
+        price: 0,
+        imageUrl: "",
+        description: "",
+        altTxt: "",
+      };
+
       // Fill datas
-      productObj.colors       = data.colors;
-      productObj._id          = data._id;
-      productObj.name         = data.name;
-      productObj.price        = data.price;
-      productObj.imageUrl     = data.imageUrl;
-      productObj.description  = data.description;
-      productObj.altTxt       = data.altTxt;
+      productObj.colors = data.colors;
+      productObj._id = data._id;
+      productObj.name = data.name;
+      productObj.price = data.price;
+      productObj.imageUrl = data.imageUrl;
+      productObj.description = data.description;
+      productObj.altTxt = data.altTxt;
 
       return productObj;
     })
-    .then(function(product) 
-    {
+    .then(function (product) {
       return writeOrderToArticleItems(order, product);
     })
-    .then(function(itemindex) 
-    {
-      const delete_item = document.getElementsByClassName('deleteItem');
+    .then(function (itemindex) {
+      const delete_item = document.getElementsByClassName("deleteItem");
 
       registerDeleteEvents(delete_item.item(itemindex - 1));
 
-      const itemQuantity = document.getElementsByClassName('itemQuantity');
+      const itemQuantity = document.getElementsByClassName("itemQuantity");
       registerQuantityEvents(itemQuantity.item(itemindex - 1));
 
       updateCartPrice(null, null);
     })
-    .catch(function(err) 
-    {
+    .catch(function (err) {
       console.log("apiAskForProduct throw Error: " + err);
-    }); 
+    });
 }
 
 // ==========================================================
 // loadOrderFromStorage
 // ==========================================================
-// Args: 
+// Args:
 //    - None
 //
 // return void
 // ==========================================================
-function loadOrderFromStorage()
-{
+function loadOrderFromStorage() {
   let _orderArray = [];
 
-  for (var i = 0; i < localStorage.length; i++)
-  {
+  for (var i = 0; i < localStorage.length; i++) {
     // Retrieve the orderObject
     var retrievedOrder = JSON.parse(localStorage[i]);
 
-    if (retrievedOrder)
-    {
+    if (retrievedOrder) {
       _orderArray.push(retrievedOrder);
     }
   }
@@ -193,12 +185,11 @@ function loadOrderFromStorage()
 //
 // Return item index (number)
 // ==========================================================
-function writeOrderToArticleItems(order, product)
-{
-    let cart__items = document.getElementById('cart__items');
-    let price = product.price * order.count;
+function writeOrderToArticleItems(order, product) {
+  let cart__items = document.getElementById("cart__items");
+  let price = product.price * order.count;
 
-    let article_write = `<article class="cart__item" data-id="${order._id}" data-color="${order.color}">
+  let article_write = `<article class="cart__item" data-id="${order._id}" data-color="${order.color}">
     <div class="cart__item__img">
       <img src="${product.imageUrl}" alt="${product.altTxt}">
     </div>
@@ -218,50 +209,51 @@ function writeOrderToArticleItems(order, product)
         </div>
       </div>
     </div>
-  </article>`
+  </article>`;
 
-  cart__items.insertAdjacentHTML('beforeend', article_write);
+  cart__items.insertAdjacentHTML("beforeend", article_write);
 
-  return document.getElementsByClassName('deleteItem').length;
+  return document.getElementsByClassName("deleteItem").length;
 }
 
 // ==========================================================
 // updateCartPrice
 // ==========================================================
-function updateCartPrice(article, priceNode)
-{
-  let totalQuantity = document.getElementById('totalQuantity');
-  let totalPrice    = document.getElementById('totalPrice');
-  let articleCount  = 0;
-  let price         = 0;
+function updateCartPrice(article, priceNode) {
+  let totalQuantity = document.getElementById("totalQuantity");
+  let totalPrice = document.getElementById("totalPrice");
+  let articleCount = 0;
+  let price = 0;
 
-  for (var i = 0; i <= localStorage.length - 1; i++)
-  {
+  for (var i = 0; i <= localStorage.length - 1; i++) {
     let retrievedObject = JSON.parse(localStorage[i]);
 
-    if (retrievedObject)
-    {
+    if (retrievedObject) {
       articleCount += Number(retrievedObject.count);
-      price += (Number(retrievedObject.price) * Number(retrievedObject.count));
-    }
-    else
-    {
-      console.log("updateCartPrice FAILED ! retrievedObject == null : " + localStorage[i]);
+      price += Number(retrievedObject.price) * Number(retrievedObject.count);
+    } else {
+      console.log(
+        "updateCartPrice FAILED ! retrievedObject == null : " + localStorage[i]
+      );
     }
 
-    if (article && article.getAttribute('data-id') === retrievedObject._id && priceNode)
-    {
-      priceNode.textContent = (Number(retrievedObject.price) * Number(retrievedObject.count)).toString() + " €";
+    if (
+      article &&
+      article.getAttribute("data-id") === retrievedObject._id &&
+      priceNode
+    ) {
+      priceNode.textContent =
+        (
+          Number(retrievedObject.price) * Number(retrievedObject.count)
+        ).toString() + " €";
     }
   }
 
-  if (totalQuantity)
-  {
+  if (totalQuantity) {
     totalQuantity.textContent = articleCount.toString();
   }
 
-  if (totalPrice)
-  {
+  if (totalPrice) {
     totalPrice.textContent = price.toString();
   }
 }
@@ -269,73 +261,64 @@ function updateCartPrice(article, priceNode)
 // **********************************************************
 //                      Events listeners
 // **********************************************************
-const formName      = document.getElementById('firstName');
-const formLastName  = document.getElementById('lastName');
-const formAddress   = document.getElementById('address');
-const formCity      = document.getElementById('city');
-const formEmail     = document.getElementById('email');
-const orderBtn      = document.getElementById('order');
+const formName = document.getElementById("firstName");
+const formLastName = document.getElementById("lastName");
+const formAddress = document.getElementById("address");
+const formCity = document.getElementById("city");
+const formEmail = document.getElementById("email");
+const orderBtn = document.getElementById("order");
 
-
-formName.addEventListener('change', onNameChange);
-formLastName.addEventListener('change', onLastNameChange);
-formAddress.addEventListener('change', onAddressChange);
-formCity.addEventListener('change', onCityChange);
-formEmail.addEventListener('change', onEmailChange);
-orderBtn.addEventListener('click', onOrderClick);
-
+formName.addEventListener("change", onNameChange);
+formLastName.addEventListener("change", onLastNameChange);
+formAddress.addEventListener("change", onAddressChange);
+formCity.addEventListener("change", onCityChange);
+formEmail.addEventListener("change", onEmailChange);
+orderBtn.addEventListener("click", onOrderClick);
 
 // ==========================================================
 // registerDeleteEvents
 // ==========================================================
-function registerDeleteEvents(delete_item)
-{
-  delete_item.addEventListener('click', onDeleteClick);
+function registerDeleteEvents(delete_item) {
+  delete_item.addEventListener("click", onDeleteClick);
 }
 
 // ==========================================================
 // registerQuantityEvents
 // ==========================================================
-function registerQuantityEvents(item)
-{
-  item.addEventListener('change', onQuantityChange);
+function registerQuantityEvents(item) {
+  item.addEventListener("change", onQuantityChange);
 }
 
 // ==========================================================
 // onDeleteClick
 // ==========================================================
-function onDeleteClick(event) 
-{
+function onDeleteClick(event) {
   event.preventDefault();
 
-  if (event.currentTarget === this)
-  {
-    let cart__item__content__settings__delete = event.currentTarget.parentElement;
+  if (event.currentTarget === this) {
+    let cart__item__content__settings__delete =
+      event.currentTarget.parentElement;
 
-    if (cart__item__content__settings__delete)
-    {
-      let cart__item__content__settings = cart__item__content__settings__delete.parentElement;
+    if (cart__item__content__settings__delete) {
+      let cart__item__content__settings =
+        cart__item__content__settings__delete.parentElement;
 
-      if (cart__item__content__settings)
-      {
+      if (cart__item__content__settings) {
         let cart__item__content = cart__item__content__settings.parentElement;
 
-        if (cart__item__content)
-        {
+        if (cart__item__content) {
           let article = cart__item__content.parentElement;
 
-          if (article)
-          {
+          if (article) {
             removeOrderFromStorage(article);
-            
-            if (localStorage.length <= 0)
-            {
+
+            if (localStorage.length <= 0) {
               // Go back to products
-              alert("Votre panier est vide ! Choisissez les produits qui vous conviennent dans notre catalogue !");
+              alert(
+                "Votre panier est vide ! Choisissez les produits qui vous conviennent dans notre catalogue !"
+              );
               goToSiteLocation("index.html");
-            }
-            else
-            {
+            } else {
               // reload script
               location.reload();
             }
@@ -349,44 +332,43 @@ function onDeleteClick(event)
 // ==========================================================
 // onQuantityChange
 // ==========================================================
-function onQuantityChange(event) 
-{
+function onQuantityChange(event) {
   event.preventDefault();
 
   let priceNode = null;
 
-  if (event.currentTarget === this)
-  {
-    let cart__item__content__settings__quantity = event.currentTarget.parentElement;
+  if (event.currentTarget === this) {
+    let cart__item__content__settings__quantity =
+      event.currentTarget.parentElement;
 
-    if (cart__item__content__settings__quantity)
-    {
-      let cart__item__content__settings = cart__item__content__settings__quantity.parentElement;
+    if (cart__item__content__settings__quantity) {
+      let cart__item__content__settings =
+        cart__item__content__settings__quantity.parentElement;
 
-      if (cart__item__content__settings)
-      {
+      if (cart__item__content__settings) {
         let cart__item__content = cart__item__content__settings.parentElement;
 
-        if (cart__item__content)
-        {
-          let cart__item__content__description = cart__item__content.firstElementChild;
+        if (cart__item__content) {
+          let cart__item__content__description =
+            cart__item__content.firstElementChild;
 
-          if (cart__item__content__description)
-          {
-              // Find the last "p"
-              if (cart__item__content__description.children && cart__item__content__description.children.length)
-              {
-                priceNode = cart__item__content__description.children[2];
-              }
+          if (cart__item__content__description) {
+            // Find the last "p"
+            if (
+              cart__item__content__description.children &&
+              cart__item__content__description.children.length
+            ) {
+              priceNode = cart__item__content__description.children[2];
+            }
           }
 
           let article = cart__item__content.parentElement;
 
-          if (article)
-          {
-            if (event.target.value <= 0 || event.target.value > 100)
-            {
-              alert("Merci de saisir une valeur superireur à 0 et inférieur à 100.");
+          if (article) {
+            if (event.target.value <= 0 || event.target.value > 100) {
+              alert(
+                "Merci de saisir une valeur superireur à 0 et inférieur à 100."
+              );
 
               event.target.value = event.target.defaultValue;
               return;
@@ -405,18 +387,17 @@ function onQuantityChange(event)
 // ==========================================================
 // onNameChange
 // ==========================================================
-function onNameChange(event)
-{
-  let elt = document.getElementById('firstNameErrorMsg');
+function onNameChange(event) {
+  let elt = document.getElementById("firstNameErrorMsg");
 
-  if (!elt)
-  {
-    console.log("onNameChange error : getElementById('firstNameErrorMsg') = " + elt);
+  if (!elt) {
+    console.log(
+      "onNameChange error : getElementById('firstNameErrorMsg') = " + elt
+    );
     return;
   }
 
-  if (!validateName(formName))
-  {
+  if (!validateName(formName)) {
     elt.textContent = "Merci de fournir un prenom valide.";
     return;
   }
@@ -427,18 +408,17 @@ function onNameChange(event)
 // ==========================================================
 // onLastNameChange
 // ==========================================================
-function onLastNameChange(event)
-{
-  let elt = document.getElementById('lastNameErrorMsg');
+function onLastNameChange(event) {
+  let elt = document.getElementById("lastNameErrorMsg");
 
-  if (!elt)
-  {
-    console.log("onLastNameChange error : getElementById('lastNameErrorMsg') = " + elt);
+  if (!elt) {
+    console.log(
+      "onLastNameChange error : getElementById('lastNameErrorMsg') = " + elt
+    );
     return;
   }
 
-  if (!validateName(formLastName))
-  {
+  if (!validateName(formLastName)) {
     elt.textContent = "Merci de fournir un nom valide.";
     return;
   }
@@ -449,18 +429,17 @@ function onLastNameChange(event)
 // ==========================================================
 // onAddressChange
 // ==========================================================
-function onAddressChange(event)
-{
-  let elt = document.getElementById('addressErrorMsg');
+function onAddressChange(event) {
+  let elt = document.getElementById("addressErrorMsg");
 
-  if (!elt)
-  {
-    console.log("onAddressChange error : getElementById('addressErrorMsg') = " + elt);
+  if (!elt) {
+    console.log(
+      "onAddressChange error : getElementById('addressErrorMsg') = " + elt
+    );
     return;
   }
 
-  if (!validateAdress(formAddress))
-  {
+  if (!validateAdress(formAddress)) {
     elt.textContent = "Merci de fournir une addresse valide.";
     return;
   }
@@ -471,18 +450,15 @@ function onAddressChange(event)
 // ==========================================================
 // onCityChange
 // ==========================================================
-function onCityChange(event)
-{
-  let elt = document.getElementById('cityErrorMsg');
+function onCityChange(event) {
+  let elt = document.getElementById("cityErrorMsg");
 
-  if (!elt)
-  {
+  if (!elt) {
     console.log("onCityChange error : getElementById('cityErrorMsg') = " + elt);
     return;
   }
 
-  if (!validateCity(formCity))
-  {
+  if (!validateCity(formCity)) {
     elt.textContent = "Merci de fournir un nom de ville valide.";
     return;
   }
@@ -493,18 +469,17 @@ function onCityChange(event)
 // ==========================================================
 // onEmailChange
 // ==========================================================
-function onEmailChange(event)
-{
-  let elt = document.getElementById('emailErrorMsg');
+function onEmailChange(event) {
+  let elt = document.getElementById("emailErrorMsg");
 
-  if (!elt)
-  {
-    console.log("onEmailChange error : getElementById('emailErrorMsg') = " + elt);
+  if (!elt) {
+    console.log(
+      "onEmailChange error : getElementById('emailErrorMsg') = " + elt
+    );
     return;
   }
 
-  if (!validateEmail(formEmail))
-  {
+  if (!validateEmail(formEmail)) {
     elt.textContent = "Merci de fournir una addresse Email valide.";
     return;
   }
@@ -515,32 +490,34 @@ function onEmailChange(event)
 // ==========================================================
 // checkForm
 // ==========================================================
-function checkForm()
-{
-  return validateName(formName) && validateName(formLastName) && validateAdress(formAddress) && validateCity(formCity) && validateEmail(formEmail);
+function checkForm() {
+  return (
+    validateName(formName) &&
+    validateName(formLastName) &&
+    validateAdress(formAddress) &&
+    validateCity(formCity) &&
+    validateEmail(formEmail)
+  );
 }
 
 // ==========================================================
 // onOrderClick
 // ==========================================================
-function onOrderClick(event)
-{
+function onOrderClick(event) {
   event.preventDefault();
 
-  if (checkForm())
-  {
+  if (checkForm()) {
     submitForm();
     return;
   }
-  
+
   console.log("checkForm FAILED");
 }
 
 // ==========================================================
 // validateName
 // ==========================================================
-function validateName(element) 
-{
+function validateName(element) {
   var regex = /^[a-zA-Z\u00C0-\u024F\u1E00-\u1EFF\s,'-]{2,30}$/;
   return regex.test(element.value);
 }
@@ -548,8 +525,7 @@ function validateName(element)
 // ==========================================================
 // validateAdress
 // ==========================================================
-function validateAdress(element) 
-{
+function validateAdress(element) {
   var regex = /^[a-zA-Z0-9\u00C0-\u024F\u1E00-\u1EFF\s,'-]*$/;
   return regex.test(element.value);
 }
@@ -557,8 +533,7 @@ function validateAdress(element)
 // ==========================================================
 // validateCity
 // ==========================================================
-function validateCity(element) 
-{
+function validateCity(element) {
   var regex = /^[a-zA-Z\u00C0-\u024F\u1E00-\u1EFF\s,'-]*$/;
   return regex.test(element.value);
 }
@@ -566,8 +541,7 @@ function validateCity(element)
 // ==========================================================
 // validateEmail
 // ==========================================================
-function validateEmail(element) 
-{
+function validateEmail(element) {
   var regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
   return regex.test(element.value);
 }
@@ -575,28 +549,28 @@ function validateEmail(element)
 // ==========================================================
 // computeJsonBody
 // ==========================================================
-function computeJsonBody()
-{
+function computeJsonBody() {
   userContact.firstName = formName.value;
-  userContact.lastName  = formLastName.value;
-  userContact.address   = formAddress.value;
-  userContact.city      = formCity.value;
-  userContact.email     = formEmail.value;
+  userContact.lastName = formLastName.value;
+  userContact.address = formAddress.value;
+  userContact.city = formCity.value;
+  userContact.email = formEmail.value;
 
   let productArray = [];
 
-  orderArray.forEach((item) => {productArray.push(item._id);})
+  orderArray.forEach((item) => {
+    productArray.push(item._id);
+  });
 
-  return {contact: userContact, products: productArray};
+  return { contact: userContact, products: productArray };
 }
 
 // ==========================================================
 // goToSiteLocation
 // ==========================================================
-function goToSiteLocation(pageName)
-{
-  var currentUrl    = window.location.href;
-  let indexOf       = currentUrl.lastIndexOf("/") + 1;
+function goToSiteLocation(pageName) {
+  var currentUrl = window.location.href;
+  let indexOf = currentUrl.lastIndexOf("/") + 1;
 
   document.location = currentUrl.substring(0, indexOf) + pageName;
 }
@@ -604,22 +578,21 @@ function goToSiteLocation(pageName)
 // ==========================================================
 // submitForm
 // ==========================================================
-async function submitForm()
-{
-  fetch(apiUrlBase + "order", {method: "POST", headers: {'Accept': 'application/json', 'Content-Type': 'application/json'}, body: JSON.stringify(computeJsonBody())})
-    .then(function(res) 
-    {
-      if (res.ok) 
-      {
+async function submitForm() {
+  fetch(apiUrlBase + "order", {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify(computeJsonBody()),
+  })
+    .then(function (res) {
+      if (res.ok) {
         return res.json();
       }
     })
-    .then(function(value) 
-    {
+    .then(function (value) {
       goToSiteLocation("confirmation.html?Id=" + value.orderId);
     })
-    .catch(function(err) 
-    {
+    .catch(function (err) {
       console.log("submitForm throw : " + err);
     });
 }
@@ -627,11 +600,12 @@ async function submitForm()
 // ==========================================================
 // Main run
 // ==========================================================
-function mainRun()
-{
+function mainRun() {
   orderArray = loadOrderFromStorage();
 
-  orderArray.forEach((item) => {apiAskForProduct(apiUrlBase + item._id, item);})
+  orderArray.forEach((item) => {
+    apiAskForProduct(apiUrlBase + item._id, item);
+  });
 }
 
 // ==========================================================

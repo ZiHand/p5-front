@@ -15,12 +15,12 @@ let userContact = {
 // ==========================================================
 function dumpStorage() {
   console.log("******* Storage Dump Start *******");
-  console.log("Storage count: " + localStorage.length);
+  console.log("Storage count: " + sessionStorage.length);
 
-  for (var i = 0; i < localStorage.length; i++) {
-    console.log("Order index " + i + " : " + localStorage[i]);
+  for (var i = 0; i < sessionStorage.length; i++) {
+    console.log("Order index " + i + " : " + sessionStorage[i]);
 
-    var retrievedObject = JSON.parse(localStorage[i]);
+    var retrievedObject = JSON.parse(sessionStorage[i]);
 
     if (!retrievedObject) {
       console.log("  Failed to retrive object: " + i);
@@ -39,14 +39,14 @@ function removeOrderFromStorage(article) {
   let color = article.getAttribute("data-color");
   let foundItem = false;
   let itemIndex = 0;
-  const storageCount = localStorage.length; // As length will change during loop we store it to continue parsing.
+  const storageCount = sessionStorage.length; // As length will change during loop we store it to continue parsing.
 
   if (storageCount <= 0) {
     throw "Une erreur est survenue lors de l'edition de votre panier.";
   }
 
   for (var i = 0; i < storageCount; i++) {
-    var retrievedObject = JSON.parse(localStorage[i]);
+    var retrievedObject = JSON.parse(sessionStorage[i]);
 
     if (
       retrievedObject &&
@@ -54,21 +54,21 @@ function removeOrderFromStorage(article) {
       retrievedObject.color === color
     ) {
       foundItem = true;
-      localStorage.removeItem(itemIndex);
+      sessionStorage.removeItem(itemIndex);
       continue;
     }
 
     if (foundItem) {
-      localStorage.setItem(itemIndex, JSON.stringify(retrievedObject));
+      sessionStorage.setItem(itemIndex, JSON.stringify(retrievedObject));
       itemIndex++;
-      localStorage.removeItem(itemIndex);
+      sessionStorage.removeItem(itemIndex);
       continue;
     }
 
     itemIndex++;
   }
 
-  if (storageCount === localStorage.length) {
+  if (storageCount === sessionStorage.length) {
     throw "Une erreur est survenue lors de l'edition de votre panier.";
   }
 }
@@ -80,8 +80,8 @@ function updateOrderQuantitytoStorage(article, quantity) {
   let _id = article.getAttribute("data-id");
   let color = article.getAttribute("data-color");
 
-  for (var i = 0; i <= localStorage.length - 1; i++) {
-    let retrievedObject = JSON.parse(localStorage[i]);
+  for (var i = 0; i <= sessionStorage.length - 1; i++) {
+    let retrievedObject = JSON.parse(sessionStorage[i]);
 
     if (!retrievedObject) {
       throw "Une erreur est survenue lors de l'edition de votre panier.";
@@ -90,7 +90,7 @@ function updateOrderQuantitytoStorage(article, quantity) {
     if (retrievedObject._id === _id && retrievedObject.color === color) {
       if (quantity >= 1) {
         retrievedObject.count = quantity;
-        localStorage.setItem(i, JSON.stringify(retrievedObject));
+        sessionStorage.setItem(i, JSON.stringify(retrievedObject));
         break;
       }
     }
@@ -164,9 +164,9 @@ function apiAskForProduct(url, order) {
 function loadOrderFromStorage() {
   let _orderArray = [];
 
-  for (var i = 0; i < localStorage.length; i++) {
+  for (var i = 0; i < sessionStorage.length; i++) {
     // Retrieve the orderObject
-    var retrievedOrder = JSON.parse(localStorage[i]);
+    var retrievedOrder = JSON.parse(sessionStorage[i]);
 
     if (retrievedOrder) {
       _orderArray.push(retrievedOrder);
@@ -225,15 +225,16 @@ function updateCartPrice(article, priceNode) {
   let articleCount = 0;
   let price = 0;
 
-  for (var i = 0; i <= localStorage.length - 1; i++) {
-    let retrievedObject = JSON.parse(localStorage[i]);
+  for (var i = 0; i <= sessionStorage.length - 1; i++) {
+    let retrievedObject = JSON.parse(sessionStorage[i]);
 
     if (retrievedObject) {
       articleCount += Number(retrievedObject.count);
       price += Number(retrievedObject.price) * Number(retrievedObject.count);
     } else {
       console.log(
-        "updateCartPrice FAILED ! retrievedObject == null : " + localStorage[i]
+        "updateCartPrice FAILED ! retrievedObject == null : " +
+          sessionStorage[i]
       );
     }
 
@@ -312,7 +313,7 @@ function onDeleteClick(event) {
           if (article) {
             removeOrderFromStorage(article);
 
-            if (localStorage.length <= 0) {
+            if (sessionStorage.length <= 0) {
               // Go back to products
               alert(
                 "Votre panier est vide ! Choisissez les produits qui vous conviennent dans notre catalogue !"

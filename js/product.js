@@ -163,21 +163,21 @@ function addToStorage() {
 
   let bFound = false;
 
-  for (var i = 0; i < localStorage.length; i++) {
+  for (var i = 0; i < sessionStorage.length; i++) {
     // Retrieve the orderObject
-    var retrievedObject = JSON.parse(localStorage[i]);
+    var retrievedObject = JSON.parse(sessionStorage[i]);
 
     if (isOrderSameOf(OrderProduct, retrievedObject)) {
       // Inc retrievedObject
       retrievedObject.count++;
       bFound = true;
-      localStorage.setItem(i, JSON.stringify(retrievedObject));
+      sessionStorage.setItem(i, JSON.stringify(retrievedObject));
       break;
     }
   }
 
   if (!bFound) {
-    localStorage.setItem(localStorage.length, JSON.stringify(OrderProduct));
+    sessionStorage.setItem(sessionStorage.length, JSON.stringify(OrderProduct));
   }
 }
 
